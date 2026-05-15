@@ -21,11 +21,12 @@ public class GameManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        
+
+        // Get budget from main menu slider
+        startingBudget = PlayerPrefs.GetFloat("SelectedBudget", 20f);
         remainingBudget = startingBudget;
     }
 
-    // Try to buy an item
     public bool TryPurchase(FoodItem item)
     {
         if (item.price > remainingBudget)
@@ -42,7 +43,6 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    // Get stats
     public float GetRemainingBudget() => remainingBudget;
     public float GetTotalSpent() => totalSpent;
     public float GetTotalNutrition()

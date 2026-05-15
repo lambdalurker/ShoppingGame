@@ -1,9 +1,9 @@
 using UnityEngine;
+using System.Collections;
 
 public class FoodDisplay : MonoBehaviour
 {
     public FoodItem foodData;
-    private Material displayMaterial;
     private bool isHighlighted = false;
 
     void Start()
@@ -14,63 +14,38 @@ public class FoodDisplay : MonoBehaviour
             return;
         }
 
-        // Color the cube to match the food
-        Renderer rend = GetComponent<Renderer>();
-        if (rend != null)
-        {
-            displayMaterial = new Material(rend.material);
-            displayMaterial.color = foodData.displayColor;
-            rend.material = displayMaterial;
-        }
-
-        // Add collider if missing
         if (GetComponent<Collider>() == null)
             gameObject.AddComponent<BoxCollider>();
     }
 
-    void OnMouseEnter()
-    {
-        isHighlighted = true;
-        // Brighten the material on hover
-        if (displayMaterial != null)
-            displayMaterial.color = foodData.displayColor * 1.3f;
-    }
-
-    void OnMouseExit()
-    {
-        isHighlighted = false;
-        if (displayMaterial != null)
-            displayMaterial.color = foodData.displayColor;
-    }
+    void OnMouseEnter() { isHighlighted = true; }
+    void OnMouseExit() { isHighlighted = false; }
 
     void OnMouseDown()
     {
-        // Try to purchase
         if (GameManager.Instance.TryPurchase(foodData))
         {
-            // Visual feedback: scale down briefly
             StartCoroutine(PurchaseFeedback());
         }
         else
         {
-            // Not enough budget - flash red
             StartCoroutine(ErrorFeedback());
         }
     }
 
-    System.Collections.IEnumerator PurchaseFeedback()
+    IEnumerator PurchaseFeedback()
     {
         Vector3 originalScale = transform.localScale;
         transform.localScale *= 0.8f;
         yield return new WaitForSeconds(0.15f);
-        transform.localScale = originalScale;
+        gameObject.SetActive(false);
     }
 
-    System.Collections.IEnumerator ErrorFeedback()
+    IEnumerator ErrorFeedback()
     {
-        Color originalColor = displayMaterial.color;
-        displayMaterial.color = Color.red;
+        Vector3 originalScale = transform.localScale;
+        transform.localScale *= 1.2f;
         yield return new WaitForSeconds(0.25f);
-        displayMaterial.color = originalColor;
+        transform.localScale = originalScale;
     }
 }
