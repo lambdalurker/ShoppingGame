@@ -5,49 +5,97 @@ using UnityEngine.SceneManagement;
 
 public class ReportManager : MonoBehaviour
 {
-    public TextMeshProUGUI titleText;
-    public TextMeshProUGUI spentText;
-    public TextMeshProUGUI itemsText;
-    public TextMeshProUGUI nutritionText;
-    public TextMeshProUGUI detailsText;
-    public Button backButton;
+    [Header("UI References")]
+
+    public TextMeshProUGUI TitleText;
+
+    // Spent Card
+    public TextMeshProUGUI SpentCardText;
+
+    // Nutrition Card
+    public TextMeshProUGUI NutritionCardText;
+
+    // Items Card
+    public TextMeshProUGUI ItemsCardText;
+
+    // Optional details section
+    public TextMeshProUGUI DetailsText;
+
+    // Button
+    public Button MainMenuButton;
 
     void Start()
-{
-    if (GameManager.Instance == null)
     {
-        Debug.LogError("GameManager not found!");
-        return;
-    }
+        // Check GameManager
+        if (GameManager.Instance == null)
+        {
+            Debug.LogError("GameManager not found!");
+            return;
+        }
 
-    // Check if all fields are assigned
-    if (titleText == null || spentText == null || itemsText == null || 
-        nutritionText == null || detailsText == null || backButton == null)
-    {
-        Debug.LogError("ReportManager: One or more UI fields are not assigned in the Inspector!");
-        return;
-    }
+        // Get data
+        float spent = GameManager.Instance.GetTotalSpent();
+        int itemCount = GameManager.Instance.GetPurchasedItems().Count;
+        float nutrition = GameManager.Instance.GetTotalNutrition();
+        float remaining = GameManager.Instance.GetRemainingBudget();
 
-    float spent = GameManager.Instance.GetTotalSpent();
-    int itemCount = GameManager.Instance.GetPurchasedItems().Count;
-    float nutrition = GameManager.Instance.GetTotalNutrition();
-    float remaining = GameManager.Instance.GetRemainingBudget();
+        // ---------- TITLE ----------
+        TitleText.text = "SHOPPING COMPLETE!";
 
-    // Populate UI
-    titleText.text = "Shopping Complete!";
-    spentText.text = $"Total Spent: ${spent:F2}";
-    itemsText.text = $"Items Bought: {itemCount}";
-    nutritionText.text = $"Nutrition Score: {nutrition:F0}";
-    
-    // Build item list
-    string details = "Items purchased:\n\n";
-    foreach (var purchase in GameManager.Instance.GetPurchasedItems())
-    {
-        details += $"• {purchase.item.foodName} (x{purchase.quantity}) — ${purchase.item.price:F2}\n";
+        // ---------- CARD VALUES ----------
+        SpentCardText.text = "$" + spent.ToString("F2");
+
+        ItemsCardText.text = itemCount.ToString();
+
+        NutritionCardText.text = nutrition.ToString("F0");
+
+        // Nutrition color
+        if (nutrition >= 80)
+        {
+            NutritionCardText.color = Color.green;
+        }
+        else if (nutrition >= 50)
+        {
+            NutritionCardText.color = Color.yellow;
+        }
+        else
+        {
+            NutritionCardText.color = Color.red;
+        }
+
+        // ---------- DETAILS ----------
+        if (DetailsText != null)
+        {
+            string details = "";
+
+            if (itemCount == 0)
+            {
+                details = "You didn't buy any items.";
+            }
+            else
+            {
+                details += "ITEMS PURCHASED\n\n";
+
+                foreach (var purchase in GameManager.Instance.GetPurchasedItems())
+                {
+                    details +=
+                        $"• {purchase.item.foodName} " +
+                        $"x{purchase.quantity}  " +
+                        $"- ${purchase.item.price * purchase.quantity:F2}\n";
+                }
+
+                details += $"\nRemaining Budget: ${remaining:F2}";
+            }
+
+            DetailsText.text = details;
+        }
+
+        // ---------- BUTTON ----------
+        MainMenuButton.onClick.RemoveAllListeners();
+
+        MainMenuButton.onClick.AddListener(() =>
+        {
+            SceneManager.LoadScene("SampleScene");
+        });
     }
-    details += $"\nBudget Remaining: ${remaining:F2}";
-    
-    detailsText.text = details;
-    backButton.onClick.AddListener(() => SceneManager.LoadScene("SampleScene"));
-}
 }
